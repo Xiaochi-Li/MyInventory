@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">MyInventory</string>
+
+    <!--String in main pages -->
+    <string name="empty_inventory_title_text">Inventory is empty</string>
+    <string name="empty_inventory_subtitle_text">Get start by adding a product</string>
+
+    <!-- Label for overview category of attributes in the editor [CHAR LIMIT=30] -->
+    <string name="category_overview">Overview</string>
+    <!-- Text hint for name field in the editor [CHAR LIMIT=30] -->
+    <string name="hint_product_name">Name</string>
+    <!-- Text hint for price field in the editor [CHAR LIMIT=30] -->
+    <string name="hint_product_price">price</string>
+    <!-- Text hint for quantity field in the editor [CHAR LIMIT=30] -->
+    <string name="hint_product_quantity">quantity</string>
+
+
+    <!-- Label for suppliers category of attributes in the editor [CHAR LIMIT=30] -->
+    <string name="category_suppliers">Suppliers Info</string>
+    <!-- Text hint for suppliers field in the editor [CHAR LIMIT=30] -->
+    <string name="hint_supplier_name">supplier name</string>
+    <string name="hint_supplier_email">email</string>
+
+
+    <!-- Text of save button in the editor activity -->
+    <string name="action_save">Save</string>
+
+
+</resources>
