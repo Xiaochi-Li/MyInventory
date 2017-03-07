@@ -28,7 +28,7 @@ public class ProductSQLightOpenHelper extends SQLiteOpenHelper{
                         ProductEntry.COLUMN_PRODUCT_QUANTITY + " INTEGER NOT NULL DEFAULT 0, " +
                         ProductEntry.COLUMN_PRODUCT_SUPPLIER + " TEXT NOT NULL, "+
                         ProductEntry.COLUMN_PRODUCT_SUPPLIER_EMAIL + " TEXT NOT NULL, " +
-                        ProductEntry.COLUMN_PRODUCT_IMAGE + " BLOB)";
+                        ProductEntry.COLUMN_PRODUCT_IMAGE + " BLOB);";
 
         db.execSQL(SQL_CREATE_ENTRIES);
     }
