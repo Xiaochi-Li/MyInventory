@@ -26,6 +26,15 @@
                 android:value=".MainActivity" />
         </activity>
 
+        <activity android:name=".ProductDetailActivity"
+            android:theme="@style/EditorTheme"
+            android:parentActivityName=".MainActivity">
+
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity"/>
+        </activity>
+
         <provider
             android:name="com.example.android.myinventory.Data.ProductProvider"
             android:authorities="com.example.android.products"

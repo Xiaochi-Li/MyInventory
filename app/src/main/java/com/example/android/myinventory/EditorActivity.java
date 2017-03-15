@@ -1,6 +1,10 @@
 package com.example.android.myinventory;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager;
@@ -20,18 +24,26 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.myinventory.Data.ProductContract.ProductEntry;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileDescriptor;
+import java.io.IOException;
+
+import static android.R.string.no;
+
 /**
  * Created by lixiaochi on 1/3/17.
  */
 
-public class EditorActivity extends AppCompatActivity{
+public class EditorActivity extends AppCompatActivity {
 
     /**
      * Identifier for the product data loader
@@ -43,6 +55,14 @@ public class EditorActivity extends AppCompatActivity{
     private TextView mPriceEditor;
     private TextView mSupplierEditor;
     private TextView mEmailEditor;
+    private Button mImageUploadBut;
+    private ImageView mImageReciver;
+
+    private Bitmap productImage = null;
+
+    private static final int SELECT_PICTURE = 1;
+
+    private String selectedImagePath;
 
     /**
      * Boolean flag that keeps track of whether the product has been edited (true) or not (false)
@@ -70,8 +90,10 @@ public class EditorActivity extends AppCompatActivity{
         mNameEditor = (EditText) findViewById(R.id.edit_product_name);
         mQuantityEditor = (EditText) findViewById(R.id.edit_product_quantity);
         mPriceEditor = (EditText) findViewById(R.id.edit_product_price);
-        mSupplierEditor= (EditText) findViewById(R.id.edit_supplier_name);
+        mSupplierEditor = (EditText) findViewById(R.id.edit_supplier_name);
         mEmailEditor = (EditText) findViewById(R.id.edit_supplier_email);
+        mImageUploadBut = (Button) findViewById(R.id.edit_upload_buttom);
+        mImageReciver = (ImageView) findViewById(R.id.edit_product_image);
 
         // Setup OnTouchListeners on all the input fields, so we can determine if the user
         // has touched or modified them. This will let us know if there are unsaved changes
@@ -81,7 +103,73 @@ public class EditorActivity extends AppCompatActivity{
         mPriceEditor.setOnTouchListener(mTouchListener);
         mSupplierEditor.setOnTouchListener(mTouchListener);
         mEmailEditor.setOnTouchListener(mTouchListener);
+        mImageReciver.setOnTouchListener(mTouchListener);
+
+        //Setup OnClickListener on the image_upload button for users to upload images from gallery.
+        mImageUploadBut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
+            }
+        });
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == SELECT_PICTURE) {
+                Uri selectedImage = data.getData();
+                String[] filePathColumn = {MediaStore.Images.Media.DATA};
+                Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+                cursor.moveToFirst();
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                //String picturePath = cursor.getString(columnIndex);
+                cursor.close();
+
+
+                try {
+                    productImage = getBitmapFromUri(selectedImage);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                mImageReciver.setImageBitmap(productImage);
+            }
+        }
+    }
+
+    private Bitmap getBitmapFromUri(Uri uri) throws IOException {
+        ParcelFileDescriptor parcelFileDescriptor =
+                getContentResolver().openFileDescriptor(uri, "r");
+        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+        Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+        parcelFileDescriptor.close();
+        return image;
+    }
+
+
+//    private String getPath(Uri uri){
+//        if( uri == null ) {
+//            // TODO perform some logging or show user feedback
+//            return null;
+//        }
+//        // try to retrieve the image from the media store first
+//        // this will only work for images selected from gallery
+//        String[] projection = { MediaStore.Images.Media.DATA };
+//        Cursor cursor = managedQuery(uri, projection, null, null, null);
+//        if( cursor != null ){
+//            int column_index = cursor
+//                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+//            cursor.moveToFirst();
+//            String path = cursor.getString(column_index);
+//            cursor.close();
+//            return path;
+//        }
+//        return uri.getPath();
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -93,7 +181,7 @@ public class EditorActivity extends AppCompatActivity{
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             //respond to a click on the "Save" menu option
             case R.id.action_save:
                 //Save pet to database
@@ -108,7 +196,7 @@ public class EditorActivity extends AppCompatActivity{
     /**
      * Get user input from editor and save product into database.
      */
-    private void saveProduct(){
+    private void saveProduct() {
         //Read from input fields
         //Use trim to eliminate leading or trailing white space
         String nameString = mNameEditor.getText().toString().trim();
@@ -117,10 +205,18 @@ public class EditorActivity extends AppCompatActivity{
         String supplierString = mSupplierEditor.getText().toString().trim();
         String supplierEmailString = mEmailEditor.getText().toString().trim();
 
+        //convert image to bitArray.
+        if (productImage != null) {
+            ByteArrayOutputStream byteArrayOpStream = new ByteArrayOutputStream();
+            productImage.compress(Bitmap.CompressFormat.PNG, 90, byteArrayOpStream);
+            byte[] productImgByte = byteArrayOpStream.toByteArray();
+
+        }
+
         // Create a ContentValues object where column names are the keys,
         // and pet attributes from the editor are the values.
         ContentValues newProductValues = new ContentValues();
-        newProductValues.put(ProductEntry.COLUMN_PRODUCT_NAME,nameString);
+        newProductValues.put(ProductEntry.COLUMN_PRODUCT_NAME, nameString);
         // If the price is not provided by the user, don't try to parse the string into an
         // integer value. Use 0 by default.
         int price = 0;
@@ -135,12 +231,21 @@ public class EditorActivity extends AppCompatActivity{
             quantity = Integer.parseInt(priceString);
         }
         newProductValues.put(ProductEntry.COLUMN_PRODUCT_QUANTITY, quantity);
-        newProductValues.put(ProductEntry.COLUMN_PRODUCT_SUPPLIER,supplierString);
-        newProductValues.put(ProductEntry.COLUMN_PRODUCT_SUPPLIER_EMAIL,supplierEmailString);
+        newProductValues.put(ProductEntry.COLUMN_PRODUCT_SUPPLIER, supplierString);
+        newProductValues.put(ProductEntry.COLUMN_PRODUCT_SUPPLIER_EMAIL, supplierEmailString);
+
+        //if image uploaded, convert image to bitArray. store bitArray to DB.
+        if (productImage != null) {
+            ByteArrayOutputStream byteArrayOpStream = new ByteArrayOutputStream();
+            productImage.compress(Bitmap.CompressFormat.PNG, 90, byteArrayOpStream);
+            byte[] productImgByte = byteArrayOpStream.toByteArray();
+            newProductValues.put(ProductEntry.COLUMN_PRODUCT_IMAGE, productImgByte);
+
+        }
 
         // returning the content URI for the new pet.
         Uri newProductUri = getContentResolver().insert(ProductEntry.CONTENT_URI, newProductValues);
-        if (newProductUri == null){
+        if (newProductUri == null) {
             // If the new content URI is null, then there was an error with insertion.
             Toast.makeText(this, "Insert fail",
                     Toast.LENGTH_SHORT).show();
@@ -149,8 +254,5 @@ public class EditorActivity extends AppCompatActivity{
             Toast.makeText(this, "New product inserted",
                     Toast.LENGTH_SHORT).show();
         }
-
     }
-
-
 }
