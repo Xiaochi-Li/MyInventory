@@ -77,7 +77,7 @@ public class ProductCursorAdapter extends CursorAdapter {
     //https://discussions.udacity.com/t/list-view-item-click-listener-and-button-click-listener-not-associated-correctly/191401
     // https://discussions.udacity.com/t/sale-button-in-inventory-list-view/191393/2
     private void updateQuantity(Context context, Cursor cursor,int id, int quantity){
-        Uri currentProductUri = ContentUris.withAppendedId(ProductContract.ProductEntry.CONTENT_URI, id);
+        Uri currentProductUri = ContentUris.withAppendedId(ProductContract.ProductEntry.CONTENT_URI, cursor.getPosition());
         ContentValues values = new ContentValues();
         quantity +=1;
         values.put(ProductEntry.COLUMN_PRODUCT_QUANTITY, quantity);
