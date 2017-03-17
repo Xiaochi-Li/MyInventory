@@ -63,7 +63,7 @@ public class ProductProvider extends ContentProvider {
         Cursor cursor = null;
 
         int match = sUriMatcher.match(uri);
-        switch (match){
+        switch (match) {
             case PRODUCTS:
                 // For the PRODUCTS code, query the products table directly with the given
                 // projection, selection, selection arguments, and sort order. The cursor
@@ -113,7 +113,7 @@ public class ProductProvider extends ContentProvider {
         }
     }
 
-    private Uri insertProduct(Uri uri, ContentValues values){
+    private Uri insertProduct(Uri uri, ContentValues values) {
         SQLiteDatabase database = myProductDbHelper.getWritableDatabase();
 
         // Check that the name is not null
@@ -150,7 +150,7 @@ public class ProductProvider extends ContentProvider {
         //Insert the new product with the given values
         long id = database.insert(ProductContract.ProductEntry.TABLE_NAME, null, values);
 
-        if (id ==-1){
+        if (id == -1) {
             Log.e(LOG_TAG, "Failed to insert row for " + uri);
             return null;
         }
@@ -169,12 +169,59 @@ public class ProductProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case PRODUCTS:
+                return updateProduct(uri, values, selection, selectionArgs);
+            case PRODUCT_ID:
+                // For the PET_ID code, extract out the ID from the URI,
+                // so we know which row to update. Selection will be "_id=?" and selection
+                // arguments will be a String array containing the actual ID.
+                selection = ProductContract.ProductEntry._ID + "=?";
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                return updateProduct(uri, values, selection, selectionArgs);
+            default:
+                throw new IllegalArgumentException("Update is not supported for " + uri);
+        }
     }
+
+    private int updateProduct(Uri uri, ContentValues values, String selection, String[] selectionArgs){
+        if (values.containsKey(ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY)){
+            int quantity = values.getAsInteger(ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY);
+            if (quantity < 0 ) {
+                throw new IllegalArgumentException("Pet reauires quantity value");
+            }
+        }
+
+        if (values.size()==0){
+            return 0;
+        }
+
+        SQLiteDatabase database = myProductDbHelper.getWritableDatabase();
+        int rowsUpdated = database.update(ProductContract.ProductEntry.TABLE_NAME, values,selection, selectionArgs);
+        return rowsUpdated;
+    }
+
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+        SQLiteDatabase database = myProductDbHelper.getWritableDatabase();
+
+        int rowDeleted;
+        final int match = sUriMatcher.match(uri);
+        switch(match){
+            case PRODUCTS:
+                rowDeleted = database.delete(ProductContract.ProductEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case PRODUCT_ID:
+                selection = ProductContract.ProductEntry._ID + "=?";
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                rowDeleted = database.delete(ProductContract.ProductEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            default:
+                throw new IllegalArgumentException("Deletion is not supported for " +uri);
+        }
+        return rowDeleted;
     }
 
     @Nullable

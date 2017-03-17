@@ -16,6 +16,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -40,7 +41,7 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
     private static final int EXISTING_PRODUCT_LOADER = 0;
 
 
-    private ImageView productPicture;
+    //private ImageView productPicture;
     private TextView productName;
     private TextView productPrice;
     private TextView productSupplier;
@@ -57,12 +58,19 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
 
         getLoaderManager().initLoader(EXISTING_PRODUCT_LOADER, null, this);
 
-        productPicture = (ImageView) findViewById(R.id.detail_image);
+        //productPicture = (ImageView) findViewById(R.id.detail_image);
         productName = (TextView) findViewById(R.id.detail_name);
         productPrice = (TextView) findViewById(R.id.detail_price);
         productSupplier = (TextView) findViewById(R.id.detail_supplier);
         productOrderMore = (Button) findViewById(R.id.order_from_suppliers);
         productQuantity = (EditText) findViewById(R.id.detail_quantity);
+
+        productOrderMore.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
     }
 
     @Override
@@ -91,7 +99,7 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
         String[] projection = {
                 ProductContract.ProductEntry._ID,
                 ProductContract.ProductEntry.COLUMN_PRODUCT_NAME,
-                ProductContract.ProductEntry.COLUMN_PRODUCT_IMAGE,
+                //ProductContract.ProductEntry.COLUMN_PRODUCT_IMAGE,
                 ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY,
                 ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER,
                 ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER_EMAIL,
@@ -114,22 +122,22 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
         if (cursor.moveToFirst()){
             int nameColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_NAME);
             int priceColumnIndex =cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_PIRCE);
-            int imageColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_IMAGE);
+            //int imageColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_IMAGE);
             int supplierColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER);
             int supplierEmailColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER_EMAIL);
             int quantityColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY);
 
             String productNameString = cursor.getString(nameColumnIndex);
             int productPriceInt = cursor.getInt(priceColumnIndex);
-            byte[] productImageByte = cursor.getBlob(imageColumnIndex);
+            //byte[] productImageByte = cursor.getBlob(imageColumnIndex);
             String productSupplierString = cursor.getString(supplierColumnIndex);
             String productSupplierEmailString = cursor.getString(supplierEmailColumnIndex);
             int productQuantityInt = cursor.getInt(quantityColumnIndex);
 
-            if(productImageByte !=null){
-            Bitmap bmp = BitmapFactory.decodeByteArray(productImageByte, 0, productImageByte.length);
-           productPicture.setImageBitmap(Bitmap.createScaledBitmap(bmp, productPicture.getWidth(),
-                    productPicture.getHeight(), false));}
+//            if(productImageByte !=null){
+//            Bitmap bmp = BitmapFactory.decodeByteArray(productImageByte, 0, productImageByte.length);
+//           productPicture.setImageBitmap(Bitmap.createScaledBitmap(bmp, productPicture.getWidth(),
+//                    productPicture.getHeight(), false));}
             productName.setText(productNameString);
             productPrice.setText(Integer.toString(productPriceInt));
             productSupplier.setText(productSupplierString);
