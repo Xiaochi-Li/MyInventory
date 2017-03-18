@@ -11,9 +11,10 @@ import android.os.CancellationSignal;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-/**
- * Created by lixiaochi on 1/3/17.
- */
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+
 
 public class ProductProvider extends ContentProvider {
 
@@ -60,7 +61,7 @@ public class ProductProvider extends ContentProvider {
         SQLiteDatabase database = myProductDbHelper.getReadableDatabase();
 
         // This cursor will hold the result of the query
-        Cursor cursor = null;
+        Cursor cursor;
 
         int match = sUriMatcher.match(uri);
         switch (match) {
@@ -125,13 +126,13 @@ public class ProductProvider extends ContentProvider {
         // Check that the supplier is not null
         String supplier = values.getAsString(ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER);
         if (supplier == null) {
-            throw new IllegalArgumentException("product requires a name");
+            throw new IllegalArgumentException("Invalid supplier");
         }
 
         // Check that the supplier's name is not null
         String email = values.getAsString(ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER_EMAIL);
-        if (email == null) {
-            throw new IllegalArgumentException("Product requires a name");
+        if (email == null && isEmailValid(email)) {
+            throw new IllegalArgumentException("Invalid email");
         }
 
 
@@ -144,7 +145,7 @@ public class ProductProvider extends ContentProvider {
         // If the price is provided, check that it's greater than or equal to 0
         Integer price = values.getAsInteger(ProductContract.ProductEntry.COLUMN_PRODUCT_PIRCE);
         if (price != null && price < 0) {
-            throw new IllegalArgumentException("Product requires valid weight");
+            throw new IllegalArgumentException("Invalid price");
         }
 
         //Insert the new product with the given values
@@ -199,6 +200,12 @@ public class ProductProvider extends ContentProvider {
 
         SQLiteDatabase database = myProductDbHelper.getWritableDatabase();
         int rowsUpdated = database.update(ProductContract.ProductEntry.TABLE_NAME, values,selection, selectionArgs);
+        // If 1 or more rows were updated, then notify all listeners that the data at the
+        // given URI has changed
+        if (rowsUpdated != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
         return rowsUpdated;
     }
 
@@ -221,6 +228,13 @@ public class ProductProvider extends ContentProvider {
             default:
                 throw new IllegalArgumentException("Deletion is not supported for " +uri);
         }
+
+        // If 1 or more rows were updated, then notify all listeners that the data at the
+        // given URI has changed
+        if (rowDeleted != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
         return rowDeleted;
     }
 
@@ -228,5 +242,19 @@ public class ProductProvider extends ContentProvider {
     @Override
     public String getType(Uri uri) {
         return null;
+    }
+
+    public static boolean isEmailValid(String email) {
+        boolean isValid = false;
+
+        String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
+        CharSequence inputStr = email;
+
+        Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(inputStr);
+        if (matcher.matches()) {
+            isValid = true;
+        }
+        return isValid;
     }
 }

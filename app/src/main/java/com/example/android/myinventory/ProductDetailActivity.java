@@ -1,6 +1,7 @@
 package com.example.android.myinventory;
 
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,6 +15,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,7 +33,7 @@ import static android.R.attr.data;
  * Created by lixiaochi on 15/3/17.
  */
 
-public class ProductDetailActivity extends AppCompatActivity implements android.app.LoaderManager.LoaderCallbacks<Cursor>{
+public class ProductDetailActivity extends AppCompatActivity implements android.app.LoaderManager.LoaderCallbacks<Cursor> {
 
     /**
      * Content URI for the existing pet (null if it's a new pet)
@@ -46,7 +48,15 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
     private TextView productPrice;
     private TextView productSupplier;
     private Button productOrderMore;
-    private EditText productQuantity;
+    private EditText shippingNumber;
+    private Button receiveShipping;
+    private String productSupplierEmailString;
+    private TextView quantityChange;
+    private Button modifyQuantity;
+    private TextView mdText;
+    private EditText changedQuantity;
+
+    private int productQuantityInt;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,12 +73,64 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
         productPrice = (TextView) findViewById(R.id.detail_price);
         productSupplier = (TextView) findViewById(R.id.detail_supplier);
         productOrderMore = (Button) findViewById(R.id.order_from_suppliers);
-        productQuantity = (EditText) findViewById(R.id.detail_quantity);
+        shippingNumber = (EditText) findViewById(R.id.detail_quantity);
+        receiveShipping = (Button) findViewById(R.id.detail_modifiy_quantity);
+        modifyQuantity = (Button) findViewById(R.id.change_current_quantity);
+        mdText = (TextView) findViewById(R.id.m_q_text);
+        quantityChange = (TextView) findViewById(R.id.quantity_change);
+        changedQuantity = (EditText) findViewById(R.id.current_quantity);
+
+        modifyQuantity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String changedQ = changedQuantity.getText().toString().trim();
+                if(!TextUtils.isEmpty(changedQ)){
+                    int modifiedQuantity = Integer.parseInt(changedQuantity.getText().toString());
+                    ContentValues values = new ContentValues();
+                    values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY, modifiedQuantity);
+
+                    int rowsAffected = getContentResolver().update(mCurrentProductUri, values,
+                            null, null);
+                    if (rowsAffected != 0) {
+                        changedQuantity.setText(Integer.toString(modifiedQuantity));
+                        int chaZhi = modifiedQuantity -productQuantityInt;
+                        quantityChange.setText("Product quantity changed" + Integer.toString(chaZhi));
+                    }
+                }
+                /*try {
+                    modifiedQuantity = Integer.parseInt(shippingNumber.getText().toString());
+                } catch (Exception e) {
+                    throw new NullPointerException(e.toString());
+                }*/
+            }
+        });
+
+
+        receiveShipping.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ContentValues values = new ContentValues();
+                int quantity = Integer.parseInt(shippingNumber.getText().toString());
+                values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY, quantity + productQuantityInt);
+
+                int rowsAffected = getContentResolver().update(mCurrentProductUri, values,
+                        null, null);
+                if (rowsAffected != 0) {
+                    shippingNumber.setText(Integer.toString(quantity));
+                }
+            }
+        });
 
         productOrderMore.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.setType("text/html");
+                intent.putExtra(Intent.EXTRA_EMAIL, productSupplierEmailString);
+                intent.putExtra(Intent.EXTRA_SUBJECT, "Order more");
+                intent.putExtra(Intent.EXTRA_TEXT, "I'd like to order");
 
+                startActivity(Intent.createChooser(intent, "Send Email"));
             }
         });
     }
@@ -81,7 +143,7 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action_delete:
                 showDeleteConfirmationDialog();
                 return true;
@@ -119,9 +181,9 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
             return;
         }
 
-        if (cursor.moveToFirst()){
+        if (cursor.moveToFirst()) {
             int nameColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_NAME);
-            int priceColumnIndex =cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_PIRCE);
+            int priceColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_PIRCE);
             //int imageColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_IMAGE);
             int supplierColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER);
             int supplierEmailColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER_EMAIL);
@@ -131,17 +193,17 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
             int productPriceInt = cursor.getInt(priceColumnIndex);
             //byte[] productImageByte = cursor.getBlob(imageColumnIndex);
             String productSupplierString = cursor.getString(supplierColumnIndex);
-            String productSupplierEmailString = cursor.getString(supplierEmailColumnIndex);
-            int productQuantityInt = cursor.getInt(quantityColumnIndex);
+            productSupplierEmailString = cursor.getString(supplierEmailColumnIndex);
+            productQuantityInt = cursor.getInt(quantityColumnIndex);
 
 //            if(productImageByte !=null){
 //            Bitmap bmp = BitmapFactory.decodeByteArray(productImageByte, 0, productImageByte.length);
 //           productPicture.setImageBitmap(Bitmap.createScaledBitmap(bmp, productPicture.getWidth(),
 //                    productPicture.getHeight(), false));}
-            productName.setText(productNameString);
-            productPrice.setText(Integer.toString(productPriceInt));
-            productSupplier.setText(productSupplierString);
-            productQuantity.setText(Integer.toString(productQuantityInt));
+            productName.setText("Name:  "+productNameString);
+            productPrice.setText("Price:  "+Integer.toString(productPriceInt));
+            productSupplier.setText("Supplier: "+productSupplierString);
+            //productQuantity.setText(Integer.toString(productQuantityInt));
         }
 
     }

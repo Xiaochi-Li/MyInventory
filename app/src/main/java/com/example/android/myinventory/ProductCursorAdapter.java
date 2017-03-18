@@ -55,17 +55,17 @@ public class ProductCursorAdapter extends CursorAdapter {
         final int id = cursor.getInt(cursor.getColumnIndexOrThrow(_ID));
         String name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PRODUCT_NAME));
         Integer price = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PRODUCT_PIRCE));
-        final Integer quantity[] = {cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PRODUCT_QUANTITY))};
+        final Integer quantity = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PRODUCT_QUANTITY));
 
 
 
         productName.setText(name);
-        productQuantity.setText(quantity[0].toString());
+        productQuantity.setText(quantity.toString());
 
         addProduct.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updateQuantity(ctext, cur, id, quantity[0]);
+                updateQuantity(ctext,  id, quantity);
             }
         });
 
@@ -76,10 +76,14 @@ public class ProductCursorAdapter extends CursorAdapter {
     //The following post will solve the problem.
     //https://discussions.udacity.com/t/list-view-item-click-listener-and-button-click-listener-not-associated-correctly/191401
     // https://discussions.udacity.com/t/sale-button-in-inventory-list-view/191393/2
-    private void updateQuantity(Context context, Cursor cursor,int id, int quantity){
-        Uri currentProductUri = ContentUris.withAppendedId(ProductContract.ProductEntry.CONTENT_URI, cursor.getPosition());
+    private void updateQuantity(Context context,int id, int quantity){
+        Uri currentProductUri = ContentUris.withAppendedId(ProductContract.ProductEntry.CONTENT_URI, id);
+
+        if(quantity>0){
+            quantity--;
+        }
+
         ContentValues values = new ContentValues();
-        quantity +=1;
         values.put(ProductEntry.COLUMN_PRODUCT_QUANTITY, quantity);
         int rowsAffected = context.getContentResolver().update(currentProductUri, values,
                 null, null);

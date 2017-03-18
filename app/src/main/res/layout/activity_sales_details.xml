@@ -34,13 +34,14 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:inputType="number"
+                android:hint="How many products received"
                 />
             <Button
                 android:id="@+id/detail_modifiy_quantity"
                 android:layout_weight="1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Modify quantity"/>
+                android:text="Receiving shipment"/>
         </LinearLayout>
 
 
@@ -51,6 +52,35 @@
             android:layout_height="wrap_content"
             android:layout_width="match_parent"/>
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/m_q_text"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="change quantity to..."/>
+        <EditText
+            android:id="@+id/current_quantity"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint=""
+            />
+        <TextView
+            android:id="@+id/quantity_change"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/change_current_quantity"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Modify quantity"/>
     </LinearLayout>
 
 
