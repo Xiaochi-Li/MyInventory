@@ -151,26 +151,6 @@ public class EditorActivity extends AppCompatActivity {
     }
 
 
-//    private String getPath(Uri uri){
-//        if( uri == null ) {
-//            // TODO perform some logging or show user feedback
-//            return null;
-//        }
-//        // try to retrieve the image from the media store first
-//        // this will only work for images selected from gallery
-//        String[] projection = { MediaStore.Images.Media.DATA };
-//        Cursor cursor = managedQuery(uri, projection, null, null, null);
-//        if( cursor != null ){
-//            int column_index = cursor
-//                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-//            cursor.moveToFirst();
-//            String path = cursor.getString(column_index);
-//            cursor.close();
-//            return path;
-//        }
-//        return uri.getPath();
-//    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu options from the res/menu/menu_editor.xml file.
@@ -228,7 +208,7 @@ public class EditorActivity extends AppCompatActivity {
         // integer value. Use 0 by default.
         int quantity = 0;
         if (!TextUtils.isEmpty(quantityString)) {
-            quantity = Integer.parseInt(priceString);
+            quantity = Integer.parseInt(quantityString);
         }
         newProductValues.put(ProductEntry.COLUMN_PRODUCT_QUANTITY, quantity);
         newProductValues.put(ProductEntry.COLUMN_PRODUCT_SUPPLIER, supplierString);
@@ -242,9 +222,11 @@ public class EditorActivity extends AppCompatActivity {
             newProductValues.put(ProductEntry.COLUMN_PRODUCT_IMAGE, productImgByte);
 
         }
-
+        Uri newProductUri = null;
         // returning the content URI for the new pet.
-        Uri newProductUri = getContentResolver().insert(ProductEntry.CONTENT_URI, newProductValues);
+        if (price>0 && quantity>0 && nameString!="" && productImage!= null) {
+            newProductUri = getContentResolver().insert(ProductEntry.CONTENT_URI, newProductValues);
+        }
         if (newProductUri == null) {
             // If the new content URI is null, then there was an error with insertion.
             Toast.makeText(this, "Insert fail",
@@ -254,5 +236,7 @@ public class EditorActivity extends AppCompatActivity {
             Toast.makeText(this, "New product inserted",
                     Toast.LENGTH_SHORT).show();
         }
+        finish();
     }
+
 }

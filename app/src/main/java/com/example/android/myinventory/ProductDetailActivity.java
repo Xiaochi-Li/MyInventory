@@ -55,8 +55,11 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
     private Button modifyQuantity;
     private TextView mdText;
     private EditText changedQuantity;
+    private TextView qtText;
+    private ImageView productImage;
 
     private int productQuantityInt;
+    private String  productNameString;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -68,7 +71,6 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
 
         getLoaderManager().initLoader(EXISTING_PRODUCT_LOADER, null, this);
 
-        //productPicture = (ImageView) findViewById(R.id.detail_image);
         productName = (TextView) findViewById(R.id.detail_name);
         productPrice = (TextView) findViewById(R.id.detail_price);
         productSupplier = (TextView) findViewById(R.id.detail_supplier);
@@ -79,6 +81,13 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
         mdText = (TextView) findViewById(R.id.m_q_text);
         quantityChange = (TextView) findViewById(R.id.quantity_change);
         changedQuantity = (EditText) findViewById(R.id.current_quantity);
+        productImage = (ImageView) findViewById(R.id.product_image);
+
+        qtText =(TextView) findViewById(R.id.qt_text);
+
+
+
+
 
         modifyQuantity.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,11 +106,7 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
                         quantityChange.setText("Product quantity changed" + Integer.toString(chaZhi));
                     }
                 }
-                /*try {
-                    modifiedQuantity = Integer.parseInt(shippingNumber.getText().toString());
-                } catch (Exception e) {
-                    throw new NullPointerException(e.toString());
-                }*/
+
             }
         });
 
@@ -128,7 +133,7 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
                 intent.setType("text/html");
                 intent.putExtra(Intent.EXTRA_EMAIL, productSupplierEmailString);
                 intent.putExtra(Intent.EXTRA_SUBJECT, "Order more");
-                intent.putExtra(Intent.EXTRA_TEXT, "I'd like to order");
+                intent.putExtra(Intent.EXTRA_TEXT, "I'd like to order " + productNameString);
 
                 startActivity(Intent.createChooser(intent, "Send Email"));
             }
@@ -161,11 +166,11 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
         String[] projection = {
                 ProductContract.ProductEntry._ID,
                 ProductContract.ProductEntry.COLUMN_PRODUCT_NAME,
-                //ProductContract.ProductEntry.COLUMN_PRODUCT_IMAGE,
                 ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY,
                 ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER,
                 ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER_EMAIL,
                 ProductContract.ProductEntry.COLUMN_PRODUCT_PIRCE,
+                ProductContract.ProductEntry.COLUMN_PRODUCT_IMAGE
         };
         return new CursorLoader(this,
                 mCurrentProductUri,
@@ -184,26 +189,26 @@ public class ProductDetailActivity extends AppCompatActivity implements android.
         if (cursor.moveToFirst()) {
             int nameColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_NAME);
             int priceColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_PIRCE);
-            //int imageColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_IMAGE);
             int supplierColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER);
             int supplierEmailColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_SUPPLIER_EMAIL);
             int quantityColumnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY);
+            int imageColumIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_PRODUCT_IMAGE);
 
-            String productNameString = cursor.getString(nameColumnIndex);
+            productNameString = cursor.getString(nameColumnIndex);
             int productPriceInt = cursor.getInt(priceColumnIndex);
-            //byte[] productImageByte = cursor.getBlob(imageColumnIndex);
             String productSupplierString = cursor.getString(supplierColumnIndex);
             productSupplierEmailString = cursor.getString(supplierEmailColumnIndex);
             productQuantityInt = cursor.getInt(quantityColumnIndex);
+            byte[] productImgByte = cursor.getBlob(imageColumIndex);
+            Bitmap imageBitmap = BitmapFactory.decodeByteArray(productImgByte, 0, productImgByte.length);
 
-//            if(productImageByte !=null){
-//            Bitmap bmp = BitmapFactory.decodeByteArray(productImageByte, 0, productImageByte.length);
-//           productPicture.setImageBitmap(Bitmap.createScaledBitmap(bmp, productPicture.getWidth(),
-//                    productPicture.getHeight(), false));}
+
+
+            productImage.setImageBitmap(imageBitmap);
             productName.setText("Name:  "+productNameString);
             productPrice.setText("Price:  "+Integer.toString(productPriceInt));
             productSupplier.setText("Supplier: "+productSupplierString);
-            //productQuantity.setText(Integer.toString(productQuantityInt));
+            qtText.setText("Quantity: "+ Integer.toString(productQuantityInt));
         }
 
     }
